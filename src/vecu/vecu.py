@@ -3,6 +3,7 @@ import struct
 import time
 import logging
 from threading import Thread
+from base64 import b64encode, b64decode
 
 from udsoncan import configs, services, Request, Response, DidCodec, DataIdentifier
 from udsoncan.connections import QueueConnection
@@ -31,6 +32,7 @@ class Vecu(Thread):
         self.__stop = False
         self.last_msg_time = time.time()
         self.log.info("Init complete, starting background thread")
+        self._flags = {0:b64encode(b'FLAGFLAGFLAGFLAG')}
         self.start()
     def get_connection(self):
         return self.conns.client_connection
@@ -66,26 +68,21 @@ class Vecu(Thread):
                     elif req.service == services.ReadDataByIdentifier:
                         response = Response(req.service, Response.Code.RequestOutOfRange)
                         try:
-                            id = struct.unpack('>h', req.data)
+                            id = struct.unpack('>H', req.data)[0]
+                            self.log.debug('Read DID %u', id)
                             if id == DataIdentifier.VIN:
-                                response = Response(req.service, Response.Code.PositiveResponse, data=self.vin)
+                                response_data = self.vin
+                            elif id in self._flags:
+                                response_data = b64decode(self._flags[id])
+                            response = Response(req.service, Response.Code.PositiveResponse, data=req.data+response_data)
                         except ValueError:
                             pass
-
-                    # # Write Data By identifier
-                    # elif req.service == services.WriteDataByIdentifier:
-                    #     if req.data[0:2] in [b"\x00\x01", b"\x00\x02", b"\x00\x03", b'\xF1\x90']:
-                    #         response = Response(
-                    #             req.service, Response.Code.PositiveResponse, req.data[0:2])
-                    #     else:
-                    #         response = Response(
-                    #             req.service, Response.Code.RequestOutOfRange)
-
                     else:
                         response = Response(
                             req.service, Response.Code.ServiceNotSupported)
 
                     if not response.positive or not req.suppress_positive_response:
+                        self.log.debug("Response:%s (data:%s)", response, response.data)
                         self.conn.send(response)
                     else:
                         print("Suppressing positive response.")
