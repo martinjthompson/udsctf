@@ -5,6 +5,7 @@ import logging
 from threading import Thread
 from base64 import b64encode, b64decode
 
+import udsoncan
 from udsoncan import configs, services, Request, Response, DidCodec, DataIdentifier
 from udsoncan.connections import QueueConnection
 
@@ -32,7 +33,8 @@ class Vecu(Thread):
         self.__stop = False
         self.last_msg_time = time.time()
         self.log.info("Init complete, starting background thread")
-        self._flags = {0:b64encode(b'FLAGFLAGFLAGFLAG')}
+        self.session = udsoncan.services.DiagnosticSessionControl.Session.defaultSession
+        self._flags = {0:b'KiogUGlhbm9Gb3J0ZSAqKg==', 1:b'LS0tU2F4b3Bob25lIC0tLQ=='}
         self.start()
     def get_connection(self):
         return self.conns.client_connection
@@ -63,7 +65,14 @@ class Vecu(Thread):
                     # Tester present
                     if req.service == services.TesterPresent:
                         response = Response(req.service, Response.Code.PositiveResponse)
-
+                    # DiagnosticSessionControl
+                    elif req.service == services.DiagnosticSessionControl:
+                        if req.subfunction == services.DiagnosticSessionControl.Session.extendedDiagnosticSession:
+                            response = Response(req.service, Response.Code.PositiveResponse, 
+                                                data=struct.pack('>bHH', req.subfunction, 1000, 100))
+                            self.session = req.subfunction
+                        else:
+                            response = Response(req.service, Response.Code.SubFunctionNotSupported)                        
                     # Read Data By identifier
                     elif req.service == services.ReadDataByIdentifier:
                         response = Response(req.service, Response.Code.RequestOutOfRange)
@@ -73,13 +82,16 @@ class Vecu(Thread):
                             if id == DataIdentifier.VIN:
                                 response_data = self.vin
                             elif id in self._flags:
-                                response_data = b64decode(self._flags[id])
-                            response = Response(req.service, Response.Code.PositiveResponse, data=req.data+response_data)
+                                response_data = None
+                                if (id == 00 or
+                                   (id == 0x0001 and self.session == 3)):
+                                    response_data = b64decode(self._flags[id])
+                            if response_data is not None:
+                                response = Response(req.service, Response.Code.PositiveResponse, data=req.data+response_data)
                         except ValueError:
                             pass
                     else:
-                        response = Response(
-                            req.service, Response.Code.ServiceNotSupported)
+                        response = Response(req.service, Response.Code.ServiceNotSupported)
 
                     if not response.positive or not req.suppress_positive_response:
                         self.log.debug("Response:%s (data:%s)", response, response.data)

@@ -11,7 +11,7 @@ UDS consists of a Client (which is you) and a Server (which is the ECU you are a
 
 One widely used service is to read a Data IDentifier, which is abbreviated to DID. Each DID is addressed by a 16-bit number.  The flag for each challenge is obtained by reading DID number associated with the challenge
 
-The content of a DID in a real ECU may or may not be documented publically.  There is a configuration for the UDS Client which you will have to fill out to correctly decode the flags from the DIDs.
+The content of a DID in a real ECU may or may not be documented publically.  There is a configuration for the UDS Client which you will have to fill out to correctly decode the flags from the DIDs. For simplicity all the flags in these challenges will be 16 ASCII characters.
 
 
 ## Installation
