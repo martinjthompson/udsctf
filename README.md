@@ -14,6 +14,7 @@ One widely used service is to read a Data IDentifier, which is abbreviated to DI
 The content of a DID in a real ECU may or may not be documented publically.  There is a configuration for the UDS Client which you will have to fill out to correctly decode the flags from the DIDs. For simplicity all the flags in these challenges will be 16 ASCII characters.
 
 
+
 ## Installation
 
 The code is all Python 3.x.  It uses the open source [udsoncan](https://github.com/pylessard/python-udsoncan) library to provide abstract access to the details of the UDS messaging. Install the required libraries into your preferred virtual environment with
@@ -26,4 +27,4 @@ Check all is well using `pytest`.
 
 ## The challenges
 
-You can find the challenges in the `challenges` subdirectory.  
+You can find the challenges in the `challenges` subdirectory.  You shouldn't need to look in the `src` subdirectory, as there is little attempt to hide how things are working.  The actual flag values are obfuscated, but the rest of the operation of the challenges is all there to be seen. 
