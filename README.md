@@ -1,6 +1,6 @@
 # UDSCTF
 
-A collection of capture-the-flag style challenges based around the [Unified Diagnostic Standard (UDS)](https://en.wikipedia.org/wiki/Unified_Diagnostic_Services). No knowledge of UDS is assumed. The [library used in this project has some good documentation](https://udsoncan.readthedocs.io/en/latest/udsoncan/intro.html).
+A collection of capture-the-flag style challenges based around the [Unified Diagnostic Standard (UDS)](https://en.wikipedia.org/wiki/Unified_Diagnostic_Services). No knowledge of UDS is assumed. The [library used in this project has some good documentation](https://udsoncan.readthedocs.io/en/latest/udsoncan/intro.html). It's worth noting that these challenges operate at the UDS level, we do not care how the UDS messages are transferred to the ECU, what encodings are used.  The attacks are all on the high-level functioning of the simulated ECU.
 
 The setup is of a virtual electronic control unit (ECU) which responds to UDS messages in a manner seen in real ECUs.  The goal of each challenge is extract a flag value from the ECU. The different flags for the different levels are protected by the UDS standard challenge response protocol (which is called "seed and key" in the industry parlance - do not confuse these terms with their usual computer science/cryptography meanings - they map directly to "challenge" and "response").
 
