@@ -8,6 +8,8 @@ class Vecu02(Vecu):
         self._dids[2] = b'ISEhIENsYXJpbmV0ICEhIQ=='
 
     def is_read_did_allowed(self, id):
+        # TODO: return correct failure code 0x33 when ECU is not unlocked.
+        # TODO: return correct failure code when not in correct session
         if id == 0x0002 and self.session == 0x60 and self.security_level == 3:
             return True
         return False

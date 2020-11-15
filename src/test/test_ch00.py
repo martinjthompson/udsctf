@@ -17,13 +17,14 @@ class Flag_string_codec(udsoncan.DidCodec):
         return 16
 
 def client_ecu(EcuClass):
-    logging.info("Setup:%s", EcuClass)
-    udsoncan.setup_logging()
+    logging.debug("Setup:%s", EcuClass)
+    # udsoncan.setup_logging()
     ecu = EcuClass()
     ecu.log.setLevel(logging.DEBUG)
     config = dict(udsoncan.configs.default_client_config)
     client = udsoncan.client.Client(ecu.get_connection(),  request_timeout=2, config=config)
     client.__enter__()
+    logging.debug("Client: %s", client)
     return (client,ecu)
 
 def test_challenge00():
