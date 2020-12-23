@@ -114,29 +114,41 @@ class Vecu(Thread):
 
         return response
 
+    def ecu_reset(self, req):
+        self.reset()
+        response = Response(req.service, Response.Code.PositiveResponse, data=bytes([req.subfunction]))
+        return response
+
     def _request_seed(self, security_level):
         return None
 
     def _expected_key(self, security_level):
         return None
 
+    def _compare(self, got, expected):
+        return got == expected
+
     def handle(self, req):
         response = None
         
         if req.service == services.TesterPresent:
-            response = Response(req.service, Response.Code.PositiveResponse)
+            response = Response(req.service, Response.Code.PositiveResponse, bytes([req.subfunction]))
         elif req.service == services.DiagnosticSessionControl:
             response = self.diagnostic_session_control(req)
         elif req.service == services.ReadDataByIdentifier:
             response = self.read_did(req)
-        # Security Access
+        elif req.service == services.ECUReset:
+            response = self.ecu_reset(req)
+        # Security Access - TODO make into function
         elif req.service == services.SecurityAccess:
             security_level = req.subfunction
             seed = None
             if (security_level & 1 == 1): # Client is requesting seed
                 response = Response(req.service, Response.Code.RequestOutOfRange)
                 seed = self._request_seed(security_level)
-                if seed is not None:
+                if type(seed) == Response:
+                    response = seed
+                elif seed is not None:
                     response = Response(req.service, Response.Code.PositiveResponse, data=bytes([security_level])+seed)
                     self.log.info("Session 0x%02x security level 0x%02x seed = %s", self.session, security_level, seed)
                     self.seed_store = seed
@@ -152,10 +164,11 @@ class Vecu(Thread):
                     self.security_level_request = None
                     response = Response(req.service, Response.Code.RequestSequenceError)
                 else:
+                    response = Response(req.service, Response.Code.SecurityAccessDenied)
                     key = req.data
                     expected_key = self._expected_key(security_level)
                     
-                    if key == expected_key:
+                    if self._compare(key, expected_key):
                         self.log.info("Key received %s correctly", hexlify(key))
                         response = Response(req.service, Response.Code.PositiveResponse, data=bytes([security_level]))
                         self.security_level = self.security_level_request

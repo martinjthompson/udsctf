@@ -18,7 +18,6 @@ def test_challenge05():
     log.info("Client and ECU setup")
     client.set_config('data_identifiers', {challenge:Flag_string_codec})
     log.setLevel(logging.INFO)
-
     # TODO - refactor, we will probably be doing this a lot!
     log.info("check read DID in default session rejected")
     with pytest.raises(udsoncan.exceptions.NegativeResponseException):
@@ -35,6 +34,8 @@ def test_challenge05():
     with pytest.raises(udsoncan.exceptions.NegativeResponseException):
         client.send_key(security_level+1, uds_key)
 
+    ecu.stop()
+    return
     log.info("Check correct key accepted")
     client.change_session(0x60)
     while 1:
