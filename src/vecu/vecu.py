@@ -36,6 +36,7 @@ class Vecu(Thread):
         self.last_msg_time = time.time()
         self.log.info("Init complete, starting background thread")
         self._dids = {}
+        self.session = udsoncan.services.DiagnosticSessionControl.Session.defaultSession
         self.reset()
         self.start()
 

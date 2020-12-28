@@ -7,7 +7,8 @@ from udsoncan import Response, services
 class Vecu15(Vecu):
     def __init__(self):
         super(Vecu15, self).__init__()
-        self._dids[15] = b'LT0tIFBpY2NvbG8gIC09LQ=='
+        self._target_did = 15
+        self._dids[self._target_did] = b'LT0tIFBpY2NvbG8gIC09LQ=='
         self._target_session = 0x60
         self._target_level = 3
     
@@ -17,7 +18,7 @@ class Vecu15(Vecu):
         self._last_fail_time = None
 
     def is_read_did_allowed(self, id):
-        if id == 15 and self.session == self._target_session and self.security_level == self._target_level:
+        if id == self._target_did and self.session == self._target_session and self.security_level == self._target_level:
             return True
         return False
 
