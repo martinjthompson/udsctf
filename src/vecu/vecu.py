@@ -10,7 +10,7 @@ from binascii import hexlify
 import udsoncan
 from udsoncan import configs, services, Request, Response, DidCodec, DataIdentifier
 from udsoncan.connections import QueueConnection
-
+from udsoncan.exceptions import TimeoutException
 from . simulated_connection import SimulatedConnections
 
 class VIN_Codec(DidCodec):
@@ -61,10 +61,13 @@ class Vecu(Thread):
             while True:
                 if self.__stop:
                     break
-                payload = self.conn.wait_frame(timeout=1, exception=True )
+                try:
+                    payload = self.conn.wait_frame(timeout=1, exception=True)
+                except TimeoutException:
+                    payload = None
                 if payload is None:
                     delta =  time.time() - self.last_msg_time 
-                    if delta > 3:
+                    if delta > 2.0:
                         self.log.warning("No messages for %f sec, exiting", delta)
                         break
                 else:
@@ -151,7 +154,7 @@ class Vecu(Thread):
                     response = seed
                 elif seed is not None:
                     response = Response(req.service, Response.Code.PositiveResponse, data=bytes([security_level])+seed)
-                    self.log.info("Session 0x%02x security level 0x%02x seed = %s", self.session, security_level, seed)
+                    self.log.info("Session 0x%02x security level 0x%02x seed = %s", self.session, security_level, hexlify(seed))
                     self.seed_store = seed
                     self.security_level_request = security_level
             else: # Client has sent key
