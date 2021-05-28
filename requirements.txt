@@ -4,3 +4,4 @@ python-can==3.3.4
 udsoncan==1.13.1
 windows-curses==2.1.0
 wrapt==1.12.1
+pytest==6.2.4
