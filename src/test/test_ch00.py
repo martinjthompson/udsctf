@@ -6,6 +6,7 @@ from binascii import hexlify
 import udsoncan
 import udsoncan.client
 
+from . test_base import logging_setup
 from .. vecu.vecu00 import Vecu00
 
 class Flag_string_codec(udsoncan.DidCodec):
@@ -17,8 +18,8 @@ class Flag_string_codec(udsoncan.DidCodec):
         return 16
 
 def client_ecu(EcuClass):
-    logging.debug("Setup:%s", EcuClass)
     # udsoncan.setup_logging()
+    logging.debug("Setup:%s", EcuClass)
     ecu = EcuClass()
     ecu.log.setLevel(logging.DEBUG)
     config = dict(udsoncan.configs.default_client_config)
@@ -28,6 +29,9 @@ def client_ecu(EcuClass):
     return (client,ecu)
 
 def test_challenge00():
+    log = logging_setup()
+    log.setLevel(logging.DEBUG)
+
     (client,ecu) = client_ecu(Vecu00)
     client.set_config('data_identifiers', {0x0000:Flag_string_codec})
     flag = client.read_data_by_identifier(0x0000)  

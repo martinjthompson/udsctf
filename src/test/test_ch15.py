@@ -7,6 +7,7 @@ from binascii import hexlify
 import udsoncan
 from udsoncan import Response
 
+from . test_base import logging_setup
 from . test_ch00 import client_ecu, Flag_string_codec
 
 from .. vecu.vecu15 import Vecu15
@@ -15,7 +16,7 @@ def test_challenge15():
     challenge = 15
     session = 0x60
     security_level = 0x3
-    log = logging.getLogger()
+    log = logging_setup()
     log.info("Start")
 
     (client,ecu) = client_ecu(Vecu15)

@@ -5,6 +5,7 @@ from base64 import b64decode
 from binascii import hexlify
 
 import udsoncan
+from . test_base import logging_setup
 from . test_ch00 import client_ecu, Flag_string_codec
 
 from .. vecu.vecu10 import Vecu10
@@ -13,7 +14,7 @@ def test_challenge10():
     challenge = 10
     session = 0x60
     security_level = 0x3
-    log = logging.getLogger()
+    log = logging_setup()
     log.info("Start")
 
     (client,ecu) = client_ecu(Vecu10)
@@ -41,6 +42,7 @@ def test_challenge10():
     client.change_session(session)
     uds_key = bytearray([0]*4)
     times = [0] * 256
+    done = False
     for bytenum in range (4):
         for val in range(256):
             uds_key[bytenum] = val
@@ -51,11 +53,14 @@ def test_challenge10():
             log.info("Key trial:%s", hexlify(uds_key))
             try:
                 client.send_key(security_level+1, bytes(uds_key))
-            except udsoncan.exceptions.NegativeResponseException:
+            except udsoncan.NegativeResponseException:
                 delta_t = time.time() - t
                 times[val]  = delta_t
                 continue
-            # we got it right!
+            # we got it right
+            done = True
+            break
+        if done:
             break
 
         _, idx = min((val, idx) for (idx, val) in enumerate(times))
@@ -65,3 +70,32 @@ def test_challenge10():
     assert(flag.data[2:] == b64decode(ecu._dids[challenge]))
     ecu.stop()
     log.info("end")     
+
+def test_challenge10_relocks():
+    challenge = 10
+    session = 0x60
+    security_level = 0x3
+    log = logging.getLogger()
+    log.info("Start")
+
+    (client,ecu) = client_ecu(Vecu10)
+    log.info("Client and ECU setup")
+    client.set_config('data_identifiers', {challenge:Flag_string_codec})
+    log.setLevel(logging.INFO)
+
+    log.info("Check that if we unlock and then attempt another session, it locks again")
+    # cheating for test purposes :)
+
+    client.change_session(session)
+    # we don't care what the seed is - we know the right answer
+    _ = client.request_seed(security_level).data[1:]
+    client.send_key(security_level+1, bytes(ecu._uds_key))
+    # now get it wrong on purpose
+    _ = client.request_seed(security_level).data[1:]
+    with pytest.raises(udsoncan.NegativeResponseException):
+        client.send_key(security_level+1, bytes(ecu._uds_seed))
+    with pytest.raises(udsoncan.NegativeResponseException):
+        _ = client.read_data_by_identifier(challenge)
+
+    ecu.stop()
+    log.info("end")      

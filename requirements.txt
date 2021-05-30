@@ -1,5 +1,6 @@
 aenum==2.2.4
 can-isotp==1.6
+colorlog>=5.0.1
 python-can==3.3.4
 udsoncan==1.13.1
 wrapt==1.12.1
