@@ -1,8 +1,9 @@
 import logging
 import pytest
 from base64 import b64decode
-
+from binascii import hexlify
 import udsoncan
+from . test_base import logging_setup
 from . test_ch00 import client_ecu, Flag_string_codec
 
 from .. vecu.vecu05 import Vecu05
@@ -11,7 +12,8 @@ def test_challenge05():
     challenge = 0x0005
     session = 0x60
     security_level = 0x3
-    log = logging.getLogger()
+    log = logging_setup()
+    log.setLevel(logging.DEBUG)
     log.info("Start")
 
     (client,ecu) = client_ecu(Vecu05)
@@ -38,7 +40,7 @@ def test_challenge05():
     client.change_session(0x60)
     while 1:
         uds_seed = client.request_seed(security_level).data[1:]
-        log.info("Seed:%s", uds_seed)
+        log.info("Seed:%s (vs %s)", hexlify(uds_seed), hexlify(b'Ky'))
         if uds_seed == b'Ky':
             break
     uds_key = b'OK'

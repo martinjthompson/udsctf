@@ -7,6 +7,7 @@ from binascii import hexlify
 import udsoncan
 from udsoncan import Response
 
+from . test_base import logging_setup
 from . test_ch00 import client_ecu, Flag_string_codec
 
 from .. vecu.vecu20 import Vecu20
@@ -14,7 +15,6 @@ from .. vecu.vecu20 import Vecu20
 challenge = 20
 session = 0x60
 security_level = 0x3
-log = logging.getLogger()
 
 def calc_key_from_seed(seed):
     key = bytearray()
@@ -24,6 +24,7 @@ def calc_key_from_seed(seed):
     return bytes(key)
 
 def test_challenge20():
+    log = logging_setup()
     (client,ecu) = client_ecu(Vecu20)
     client.set_config('data_identifiers', {challenge:Flag_string_codec})
     log.setLevel(logging.INFO)

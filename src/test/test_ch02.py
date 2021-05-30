@@ -3,12 +3,13 @@ import pytest
 from base64 import b64decode
 
 import udsoncan
+from . test_base import logging_setup
 from . test_ch00 import client_ecu, Flag_string_codec
 
 from .. vecu.vecu02 import Vecu02
 
 def test_challenge02():
-    log = logging.getLogger("ch02")
+    log = logging_setup()
     log.setLevel(logging.DEBUG)
     log.info("Start")
 

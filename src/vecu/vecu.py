@@ -42,9 +42,7 @@ class Vecu(Thread):
 
     def reset(self):
         self.session = udsoncan.services.DiagnosticSessionControl.Session.defaultSession
-        self.security_level = 0
-        self.security_level_request = None
-        self.seed_store = None
+        self._lock()
 
     def get_connection(self):
         return self.conns.client_connection
@@ -131,6 +129,11 @@ class Vecu(Thread):
 
     def _compare(self, got, expected):
         return got == expected
+        
+    def _lock(self):
+        self.security_level = 0
+        self.security_level_request = None
+        self.seed_store = None
 
     def handle(self, req):
         response = None
@@ -164,8 +167,7 @@ class Vecu(Thread):
                         self.log.error("Sequence error - no seed requested")
                     else:
                         self.log.error("Sequence error - wrong security level")
-                    self.seed_store = None
-                    self.security_level_request = None
+                    self._lock()
                     response = Response(req.service, Response.Code.RequestSequenceError)
                 else:
                     response = Response(req.service, Response.Code.SecurityAccessDenied)
@@ -178,6 +180,7 @@ class Vecu(Thread):
                         self.security_level = self.security_level_request
                     else:
                         self.log.warning("Key received %s incorrectly", hexlify(key))
+                        self._lock()
                     self.seed_store = None
                     self.security_level_request = None
 

@@ -24,7 +24,6 @@ class Vecu10(Vecu):
             return self._uds_key
         return None
 
-
     def _compare(self, got, expected):
         if len(got) != len(expected):
             return False
