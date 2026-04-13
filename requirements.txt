@@ -4,4 +4,4 @@ colorlog>=5.0.1
 python-can==3.3.4
 udsoncan==1.13.1
 wrapt==1.12.1
-pytest==6.2.4
+pytest==9.0.3
